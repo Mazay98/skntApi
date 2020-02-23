@@ -77,6 +77,7 @@ class UsersApi extends Api
     /**
      * Метод PUT
      * http://ДОМЕН/users/{user_id}/services/{service_id}/tarif
+     * Body tarif_id
      * @return string
      */
     public function updateAction()
@@ -89,8 +90,16 @@ class UsersApi extends Api
         }
 
         $db = (new Db())->getConnect();
-        if (Users::updateTarif($db, $params->user_id, $params->service_id)){
-            return $this->response(20,["result"=> "ok"]);
+
+        $tarif_id = json_decode(file_get_contents('php://input'), JSON_OBJECT_AS_ARRAY);
+
+        if (!$tarif_id['tarif_id']){
+            $this->response(404);
+            throw new RuntimeException();
+        }
+
+        if (Users::updateTarif($db, $params->user_id, $params->service_id, $tarif_id['tarif_id'])){
+            return $this->response(200,["result"=> "ok"]);
         } else {
             $this->response(404);
             throw new RuntimeException();

@@ -8,9 +8,9 @@ class Users
      * @param integer $service_id int Id сервис
      * @return boolean
      */
-    public static function updateTarif($db, $user_id, $service_id)
+    public static function updateTarif($db, $user_id, $service_id, $tarif_id)
     {
-        $tarif = self::getTarif($db, $user_id, $service_id);
+        $tarif = self::getTarif($db, $user_id, $service_id, $tarif_id);
 
         $sql = '
             UPDATE services 
@@ -64,9 +64,10 @@ class Users
      * @param object $db  подключениие к DB
      * @param integer $user_id int Id рользователя
      * @param integer $service_id int Id сервис
+     * @param integer $tarif_id Id тарифа
      * @return mixed
      */
-    public static function getTarif($db, $user_id, $service_id)
+    public static function getTarif($db, $user_id, $service_id, $tarif_id='')
     {
         $sql= "
             SELECT tar.ID, tar.title, tar.link, tar.speed, tar.pay_period, tar.tarif_group_id
@@ -77,6 +78,18 @@ class Users
 
         $stmt = $db->prepare($sql);
         $stmt->execute([$user_id, $service_id]);
+
+        if(!empty($tarif_id)){
+            $sql= "
+                SELECT tar.ID, tar.title, tar.link, tar.speed, tar.pay_period, tar.tarif_group_id
+                FROM tarifs tar
+                INNER JOIN services ser ON ser.user_id = ? AND ser.id = ?
+                WHERE tar.ID = ?
+            ";
+            $stmt = $db->prepare($sql);
+            $stmt->execute([$user_id, $service_id, $tarif_id]);
+        }
+
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row;
     }
